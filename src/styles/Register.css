@@ -1,0 +1,109 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  padding: 2rem 1rem;
+}
+
+.register-box {
+  background: var(--card);
+  padding: 2.5rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(109, 40, 217, 0.2);
+  width: 100%;
+  max-width: 500px;
+}
+
+.register-box h1 {
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.role-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.role-selector button {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  background: var(--card);
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.role-selector button.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.register-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.register-btn:hover {
+  background-color: var(--secondary);
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+.login-link a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .register-box {
+    padding: 2rem 1.5rem;
+  }
+  
+  .register-box h1 {
+    font-size: 1.25rem;
+  }
+  
+  .role-selector button {
+    padding: 0.625rem;
+    font-size: 0.9rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .register-box {
+    padding: 1.5rem 1rem;
+  }
+}

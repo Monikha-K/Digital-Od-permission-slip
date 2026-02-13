@@ -1,0 +1,22 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #fff;
+}
+
+.dashboard-content h1 {
+  color: #2563eb;
+  margin-bottom: 2rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+}

@@ -1,0 +1,144 @@
+.filter-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filter-tabs button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  background: var(--card);
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.filter-tabs button.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.request-card {
+  background: var(--card);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(109, 40, 217, 0.1);
+}
+
+.request-card h3 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.request-card p {
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  word-wrap: break-word;
+}
+
+.documents {
+  margin: 1rem 0;
+}
+
+.documents ul {
+  margin-left: 1.5rem;
+  color: var(--muted);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-approve {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: var(--success);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-approve:hover {
+  background-color: #047857;
+}
+
+.btn-reject {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: var(--error);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-reject:hover {
+  background-color: #b91c1c;
+}
+
+.approval-form {
+  padding: 1rem 0;
+}
+
+.approval-form p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .requests-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-tabs button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-tabs {
+    gap: 0.5rem;
+  }
+  
+  .filter-tabs button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .request-card {
+    padding: 1.25rem;
+  }
+  
+  .request-card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .request-card p {
+    font-size: 0.9rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .btn-approve,
+  .btn-reject {
+    width: 100%;
+  }
+}

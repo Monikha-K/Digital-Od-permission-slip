@@ -1,0 +1,108 @@
+.view-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.view-tabs button {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  background: var(--card);
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.view-tabs button.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.search-bar {
+  margin-bottom: 2rem;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filter-buttons button {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e2e8f0;
+  background: var(--card);
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.filter-buttons button.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn-delete {
+  padding: 0.5rem 1rem;
+  background-color: var(--error);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-delete:hover {
+  background-color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+  .view-tabs button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .search-bar input {
+    max-width: 100%;
+  }
+  
+  .filter-buttons button {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-tabs {
+    gap: 0.5rem;
+  }
+  
+  .view-tabs button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .filter-buttons {
+    gap: 0.375rem;
+  }
+  
+  .filter-buttons button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
