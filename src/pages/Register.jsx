@@ -1,136 +1,177 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register as registerAPI } from '../utils/api';
-import { DEPARTMENTS, YEARS } from '../utils/departments';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Register.css';
 
-const Register = () => {
-  const [role, setRole] = useState('student');
-  const [formData, setFormData] = useState({});
+const DEPARTMENTS = ['CSE', 'AIDS', 'ECE', 'EEE', 'MECH', 'CYBER', 'CSBS', 'AIML', 'IT'];
+
+function Register() {
+  const [userType, setUserType] = useState('Student');
+  const [formData, setFormData] = useState({
+    name: '', email: '', password: '', department: '', year: '',
+    rollNumber: '', staffId: '', isClassAdvisor: false, advisorYear: ''
+  });
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const validateEmail = (email) => {
-    return email.endsWith('@college.edu');
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (!validateEmail(formData.email)) {
-      setError('Email must end with @college.edu');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (formData[key] !== '' && formData[key] !== null) data.append(key, formData[key]);
+    });
+    data.append('role', userType);
+    if (profilePhoto) data.append('profilePhoto', profilePhoto);
 
     try {
-      const userData = { 
-        ...formData, 
-        role,
-        isClassAdvisor: formData.isClassAdvisor === 'true'
-      };
-      await registerAPI(userData);
-      navigate('/login');
-    } catch (error) {
-      setError(error.response?.data?.message || 'Registration failed');
+      await register(data);
+      navigate(userType === 'Student' ? '/student/dashboard' : '/faculty/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="register-container">
-      <div className="register-box">
-        <h1>Register</h1>
-        <div className="role-selector">
-          <button 
-            className={role === 'student' ? 'active' : ''} 
-            onClick={() => setRole('student')}
+      <div className="register-card">
+        <div className="register-card-header">
+          <p className="college-name">Sri Eshwar College of Engineering</p>
+          <h1>Digital OD Permission System</h1>
+          <p className="subtitle">Create your account to get started</p>
+        </div>
+
+        <div className="user-type-selector">
+          <button
+            type="button"
+            className={userType === 'Student' ? 'active' : ''}
+            onClick={() => setUserType('Student')}
           >
             Student
           </button>
-          <button 
-            className={role === 'faculty' ? 'active' : ''} 
-            onClick={() => setRole('faculty')}
+          <button
+            type="button"
+            className={userType === 'Faculty' ? 'active' : ''}
+            onClick={() => setUserType('Faculty')}
           >
             Faculty
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {role === 'student' && (
-            <>
-              <div className="form-group">
-                <label>Name</label>
-                <input type="text" name="name" onChange={handleChange} required />
-              </div>
+        <form onSubmit={handleSubmit} className="register-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Full Name</label>
+              <input
+                type="text"
+                placeholder="Enter your full name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Department</label>
+              <select
+                value={formData.department}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                required
+              >
+                <option value="">Select Department</option>
+                {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Official Email</label>
+            <input
+              type="email"
+              placeholder="Enter your college email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Create a strong password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+            />
+          </div>
+
+          {userType === 'Student' ? (
+            <div className="form-row">
               <div className="form-group">
                 <label>Roll Number</label>
-                <input type="text" name="rollNumber" onChange={handleChange} required />
-              </div>
-              <div className="form-group">
-                <label>Department</label>
-                <select name="department" onChange={handleChange} required>
-                  <option value="">Select Department</option>
-                  {DEPARTMENTS.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  placeholder="e.g. 22CS001"
+                  value={formData.rollNumber}
+                  onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>Year</label>
-                <select name="year" onChange={handleChange} required>
+                <select
+                  value={formData.year}
+                  onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                  required
+                >
                   <option value="">Select Year</option>
-                  {YEARS.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
+                  <option value="1">1st Year</option>
+                  <option value="2">2nd Year</option>
+                  <option value="3">3rd Year</option>
+                  <option value="4">4th Year</option>
                 </select>
               </div>
-            </>
-          )}
-
-          {role === 'faculty' && (
+            </div>
+          ) : (
             <>
               <div className="form-group">
-                <label>Name</label>
-                <input type="text" name="name" onChange={handleChange} required />
-              </div>
-              <div className="form-group">
                 <label>Staff ID</label>
-                <input type="text" name="staffId" onChange={handleChange} required />
+                <input
+                  type="text"
+                  placeholder="Enter your staff ID"
+                  value={formData.staffId}
+                  onChange={(e) => setFormData({ ...formData, staffId: e.target.value })}
+                  required
+                />
               </div>
-              <div className="form-group">
-                <label>Department</label>
-                <select name="department" onChange={handleChange} required>
-                  <option value="">Select Department</option>
-                  {DEPARTMENTS.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Are you a Class Advisor?</label>
-                <select name="isClassAdvisor" onChange={handleChange} required>
-                  <option value="">Select</option>
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-              </div>
-              {formData.isClassAdvisor === 'true' && (
+              <label className="checkbox-group">
+                <input
+                  type="checkbox"
+                  checked={formData.isClassAdvisor}
+                  onChange={(e) => setFormData({ ...formData, isClassAdvisor: e.target.checked })}
+                />
+                <span>I am a Class Advisor</span>
+              </label>
+              {formData.isClassAdvisor && (
                 <div className="form-group">
-                  <label>Class Advisor for Year</label>
-                  <select name="advisorYear" onChange={handleChange} required>
+                  <label>Advisor for Year</label>
+                  <select
+                    value={formData.advisorYear}
+                    onChange={(e) => setFormData({ ...formData, advisorYear: e.target.value })}
+                    required
+                  >
                     <option value="">Select Year</option>
-                    {YEARS.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
                   </select>
                 </div>
               )}
@@ -138,27 +179,28 @@ const Register = () => {
           )}
 
           <div className="form-group">
-            <label>Official Email</label>
-            <input type="email" name="email" onChange={handleChange} required />
-          </div>
-          <div className="form-group">
-            <label>Username</label>
-            <input type="text" name="username" onChange={handleChange} required />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input type="password" name="password" onChange={handleChange} required />
+            <label>Profile Photo</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setProfilePhoto(e.target.files[0])}
+              required
+            />
           </div>
 
           {error && <div className="error-message">{error}</div>}
-          <button type="submit" className="register-btn">Register</button>
+
+          <button type="submit" className="register-btn" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
         </form>
+
         <p className="login-link">
-          Already have an account? <Link to="/login">Login here</Link>
+          Already have an account? <Link to="/login">Sign In</Link>
         </p>
       </div>
     </div>
   );
-};
+}
 
 export default Register;

@@ -1,224 +1,263 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { createODRequest, getMyODRequests, getHODByDepartment, getInnovationHeadByDepartment } from '../utils/api';
-import { getMentorsByDepartment, getAdvisorsByDepartmentAndYear, getCFI } from '../utils/facultyData';
 import Sidebar from '../components/Sidebar';
-import Toast from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
+import { odAPI, adminAPI } from '../services/apiService';
 import '../styles/ApplyOD.css';
 
-const ApplyOD = () => {
-  const { user, logout } = useContext(AuthContext);
+function ApplyOD() {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [toast, setToast] = useState(null);
-  const [mentors, setMentors] = useState([]);
-  const [advisors, setAdvisors] = useState([]);
-  const [cfi, setCfi] = useState(null);
-  const [hod, setHod] = useState(null);
-  const [innovationHead, setInnovationHead] = useState(null);
-  const [approvedODCount, setApprovedODCount] = useState(0);
+  const [days, setDays] = useState('');
   const [formData, setFormData] = useState({
-    eventName: '',
-    collegeName: '',
-    fromDate: '',
-    toDate: '',
-    description: '',
-    selectedMentorId: '',
-    selectedAdvisorId: ''
-  });
-  const [files, setFiles] = useState({
-    registrationForm: null,
-    paymentProof: null,
-    poster: null
+    eventName: '', collegeName: '',
+    department: user?.department || '',
+    year: user?.year || '',
+    fromDate: '', toDate: '', mentor: '', classAdvisor: '', description: ''
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [mentorsData, advisorsData, cfiData, hodData, innovationData, requests] = await Promise.all([
-          getMentorsByDepartment(user.department),
-          getAdvisorsByDepartmentAndYear(user.department, user.year),
-          getCFI(),
-          getHODByDepartment(user.department),
-          getInnovationHeadByDepartment(user.department),
-          getMyODRequests()
-        ]);
-        setMentors(mentorsData);
-        setAdvisors(advisorsData);
-        setCfi(cfiData);
-        setHod(hodData);
-        setInnovationHead(innovationData);
-        setApprovedODCount(requests.filter(r => r.finalStatus === 'Approved').length);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-  }, [user.department, user.year]);
+  // Tomorrow's date as min value for date inputs
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0];
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleDaysChange = (e) => {
+    const val = e.target.value;
+    // Only allow positive integers
+    if (val === '' || (Number(val) > 0 && Number.isInteger(Number(val)))) {
+      setDays(val);
+      setFormData(prev => ({ ...prev, fromDate: '', toDate: '' }));
+    }
   };
 
-  const handleFileChange = (e) => {
-    setFiles({ ...files, [e.target.name]: e.target.files[0]?.name || null });
+  const handleFromDate = (e) => {
+    const val = e.target.value;
+    if (!val || !days || Number(days) < 1) {
+      setFormData(prev => ({ ...prev, fromDate: val, toDate: '' }));
+      return;
+    }
+    const from = new Date(val);
+    const to = new Date(from);
+    to.setDate(from.getDate() + Number(days) - 1);
+    const toStr = to.toISOString().split('T')[0];
+    setFormData(prev => ({ ...prev, fromDate: val, toDate: toStr }));
+  };
+  const [files, setFiles] = useState({});
+  const [mentors, setMentors] = useState([]);
+  const [advisors, setAdvisors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    if (user?.department) {
+      fetchMentors();
+      if (user?.year) fetchAdvisors();
+    }
+  }, [user]);
+
+  const fetchMentors = async () => {
+    try {
+      const { data } = await adminAPI.getMentors(user.department);
+      setMentors(data);
+    } catch (error) {
+      console.error('Error fetching mentors:', error);
+    }
+  };
+
+  const fetchAdvisors = async () => {
+    try {
+      const { data } = await adminAPI.getAdvisors(user.department, user.year);
+      setAdvisors(data);
+    } catch (error) {
+      console.error('Error fetching advisors:', error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (approvedODCount >= 10) {
-      setToast({ message: 'You have reached the maximum limit of 10 ODs!', type: 'error' });
-      return;
+    setError('');
+    setSuccess('');
+
+    // Validate dates are in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(formData.fromDate) <= today) {
+      return setError('OD date must be a future date');
+    }
+    if (Number(days) > 1 && new Date(formData.toDate) <= today) {
+      return setError('To date must be a future date');
     }
 
-    if (!formData.selectedMentorId || !formData.selectedAdvisorId) {
-      setToast({ message: 'Please select both Mentor and Class Advisor!', type: 'error' });
-      return;
-    }
-
-    if (!cfi || !hod || !innovationHead) {
-      setToast({ message: 'Required approvers not found. Please contact admin.', type: 'error' });
-      return;
-    }
+    setLoading(true);
+    const data = new FormData();
+    Object.keys(formData).forEach(key => data.append(key, formData[key]));
+    Object.keys(files).forEach(key => {
+      if (files[key]) data.append(key, files[key]);
+    });
+    data.append('days', days);
 
     try {
-      const odRequest = {
-        studentName: user.name,
-        department: user.department,
-        year: user.year,
-        selectedMentorId: formData.selectedMentorId,
-        selectedAdvisorId: formData.selectedAdvisorId,
-        innovationHeadId: innovationHead._id,
-        hodId: hod._id,
-        cfiId: cfi._id,
-        eventName: formData.eventName,
-        collegeName: formData.collegeName,
-        fromDate: formData.fromDate,
-        toDate: formData.toDate,
-        description: formData.description,
-        documents: files
-      };
-
-      await createODRequest(odRequest);
-      setToast({ message: 'OD Request submitted successfully!', type: 'success' });
-      setTimeout(() => navigate('/student/history'), 2000);
-    } catch (error) {
-      setToast({ message: error.response?.data?.message || 'Failed to submit OD request', type: 'error' });
+      await odAPI.create(data);
+      setSuccess('OD request submitted successfully!');
+      setTimeout(() => navigate('/student/od-history'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to submit request');
+    } finally {
+      setLoading(false);
     }
   };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const sidebarLinks = [
-    { path: '/student/dashboard', label: 'Dashboard' },
-    { path: '/student/apply', label: 'Apply OD' },
-    { path: '/student/history', label: 'OD History' }
-  ];
-
-  const remainingODs = 10 - approvedODCount;
-  const isFormDisabled = approvedODCount >= 10;
-  const isSubmitDisabled = isFormDisabled || !formData.selectedMentorId || !formData.selectedAdvisorId;
 
   return (
     <div className="dashboard-layout">
-      <Sidebar links={sidebarLinks} onLogout={handleLogout} />
-      <div className="dashboard-content">
+      <Sidebar />
+      <div className="main-content">
         <h1>Apply for OD</h1>
-        
-        {approvedODCount >= 8 && approvedODCount < 10 && (
-          <div className="warning-message">
-            ⚠️ Warning: Only {remainingODs} OD{remainingODs > 1 ? 's' : ''} left!
-          </div>
-        )}
-        
-        {approvedODCount >= 10 && (
-          <div className="error-message">
-            ❌ You have reached the maximum limit of 10 ODs. Cannot apply for more.
+
+        {user?.isBlocked && (
+          <div className="error-message" style={{ fontSize: '15px', marginBottom: '24px' }}>
+            🚫 You are blocked from applying for OD. Please contact your Class Advisor or Admin.
           </div>
         )}
 
-        <form className="od-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Event Name</label>
-            <input type="text" name="eventName" onChange={handleChange} required disabled={isFormDisabled} />
-          </div>
-          <div className="form-group">
-            <label>College Name</label>
-            <input type="text" name="collegeName" onChange={handleChange} required disabled={isFormDisabled} />
-          </div>
-          <div className="form-group">
-            <label>Department</label>
-            <input type="text" value={user?.department} disabled />
-          </div>
-          <div className="form-group">
-            <label>Year</label>
-            <input type="text" value={user?.year} disabled />
-          </div>
-          
-          <div className="form-group">
-            <label>Select Your Mentor *</label>
-            <select name="selectedMentorId" onChange={handleChange} required disabled={isFormDisabled}>
-              <option value="">-- Select Mentor --</option>
-              {mentors.map(mentor => (
-                <option key={mentor._id} value={mentor._id}>{mentor.name}</option>
-              ))}
-            </select>
-            {mentors.length === 0 && (
-              <small className="info-text">No mentors registered for {user?.department} department yet.</small>
-            )}
-          </div>
-          
-          <div className="form-group">
-            <label>Select Your Class Advisor *</label>
-            <select name="selectedAdvisorId" onChange={handleChange} required disabled={isFormDisabled}>
-              <option value="">-- Select Class Advisor --</option>
-              {advisors.map(advisor => (
-                <option key={advisor._id} value={advisor._id}>{advisor.name}</option>
-              ))}
-            </select>
-            {advisors.length === 0 && (
-              <small className="info-text">No class advisors registered for Year {user?.year} in {user?.department} department yet.</small>
-            )}
+        {!user?.isBlocked && (
+          <>
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        <form onSubmit={handleSubmit} className="od-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Event Name</label>
+              <input
+                type="text"
+                value={formData.eventName}
+                onChange={(e) => setFormData({...formData, eventName: e.target.value})}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>College Name</label>
+              <input
+                type="text"
+                value={formData.collegeName}
+                onChange={(e) => setFormData({...formData, collegeName: e.target.value})}
+                required
+              />
+            </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>OD From Date</label>
-              <input type="date" name="fromDate" onChange={handleChange} required disabled={isFormDisabled} />
+              <label>Number of Days</label>
+              <input
+                type="number"
+                min="1"
+                placeholder="Enter number of days"
+                value={days}
+                onChange={handleDaysChange}
+                required
+              />
+            </div>
+          </div>
+
+          {days !== '' && Number(days) >= 1 && (
+            <div className="form-row">
+              <div className="form-group">
+                <label>{Number(days) === 1 ? 'OD Date' : 'From Date'}</label>
+                <input
+                  type="date"
+                  value={formData.fromDate}
+                  min={minDate}
+                  onChange={handleFromDate}
+                  required
+                />
+              </div>
+              {Number(days) > 1 && (
+                <div className="form-group">
+                  <label>To Date <span className="date-hint">(auto-calculated)</span></label>
+                  <input
+                    type="date"
+                    value={formData.toDate}
+                    readOnly
+                    style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#64748b' }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Select Mentor</label>
+              <select
+                value={formData.mentor}
+                onChange={(e) => setFormData({...formData, mentor: e.target.value})}
+                required
+              >
+                <option value="">Select Mentor</option>
+                {mentors.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
             </div>
             <div className="form-group">
-              <label>OD To Date</label>
-              <input type="date" name="toDate" onChange={handleChange} required disabled={isFormDisabled} />
+              <label>Select Class Advisor</label>
+              <select
+                value={formData.classAdvisor}
+                onChange={(e) => setFormData({...formData, classAdvisor: e.target.value})}
+                required
+              >
+                <option value="">Select Advisor</option>
+                {advisors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
             </div>
           </div>
+
           <div className="form-group">
             <label>Event Registration Form</label>
-            <input type="file" name="registrationForm" onChange={handleFileChange} required disabled={isFormDisabled} />
+            <input
+              type="file"
+              onChange={(e) => setFiles({...files, registrationForm: e.target.files[0]})}
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
           </div>
+
           <div className="form-group">
             <label>Payment Proof</label>
-            <input type="file" name="paymentProof" onChange={handleFileChange} required disabled={isFormDisabled} />
+            <input
+              type="file"
+              onChange={(e) => setFiles({...files, paymentProof: e.target.files[0]})}
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
           </div>
+
           <div className="form-group">
-            <label>Event Poster</label>
-            <input type="file" name="poster" onChange={handleFileChange} required disabled={isFormDisabled} />
+            <label>Event Poster / Brochure</label>
+            <input
+              type="file"
+              onChange={(e) => setFiles({...files, eventPoster: e.target.files[0]})}
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
           </div>
+
           <div className="form-group">
             <label>Description</label>
-            <textarea name="description" rows="4" onChange={handleChange} required disabled={isFormDisabled}></textarea>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows="4"
+              required
+            ></textarea>
           </div>
-          <button type="submit" className="submit-btn" disabled={isSubmitDisabled}>
-            Submit OD Request
+
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit OD Request'}
           </button>
         </form>
+        </>
+        )}
       </div>
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
-};
+}
 
 export default ApplyOD;

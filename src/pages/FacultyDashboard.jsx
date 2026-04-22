@@ -1,209 +1,210 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { getFacultyODRequests, updateODApproval } from '../utils/api';
 import Sidebar from '../components/Sidebar';
-import Modal from '../components/Modal';
-import Toast from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
+import { odAPI } from '../services/apiService';
 import '../styles/FacultyDashboard.css';
 
-const FacultyDashboard = () => {
-  const { user, logout } = useContext(AuthContext);
+const ROLE_KEY = {
+  Mentor: 'mentor', ClassAdvisor: 'classAdvisor',
+  InnovationHead: 'innovationHead', HOD: 'hod', CFI: 'cfi'
+};
+const FLOW = ['mentor', 'classAdvisor', 'innovationHead', 'hod', 'cfi'];
+
+function getApproval(req, role) {
+  return req.approvals?.find(a => a.role === role) || { status: 'Pending' };
+}
+
+const ROLE_ICONS = {
+  Mentor: '🎓', ClassAdvisor: '📋', InnovationHead: '💡', HOD: '🏛️', CFI: '🔬'
+};
+
+function FacultyDashboard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [filter, setFilter] = useState('pending');
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [remark, setRemark] = useState('');
-  const [toast, setToast] = useState(null);
-  const [allRequests, setAllRequests] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const data = await getFacultyODRequests();
-        setAllRequests(data);
-      } catch (error) {
-        console.error('Error fetching requests:', error);
-      }
-    };
-    fetchRequests();
+    odAPI.getFacultyRequests()
+      .then(({ data }) => setRequests(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  const getFilteredRequests = () => {
-    return allRequests;
-  };
+  const key      = ROLE_KEY[user?.role];
+  const myIndex  = FLOW.indexOf(key);
 
-  const canApprove = (request) => {
-    const { approvals } = request;
-    
-    if (request.selectedMentorId?._id === user._id) {
-      return approvals.mentor.status === 'Pending';
+  const total    = requests.length;
+  const approved = requests.filter(r => getApproval(r, key).status === 'Approved').length;
+  const rejected = requests.filter(r => getApproval(r, key).status === 'Rejected' || r.finalStatus === 'Rejected').length;
+  const pending  = requests.filter(r => getApproval(r, key).status === 'Pending' && r.finalStatus !== 'Rejected').length;
+
+  const actionNeeded = requests.filter(r => {
+    for (let i = 0; i < myIndex; i++) {
+      if (getApproval(r, FLOW[i]).status !== 'Approved') return false;
     }
-    
-    if (request.selectedAdvisorId?._id === user._id) {
-      return approvals.mentor.status === 'Approved' && approvals.advisor.status === 'Pending';
-    }
-    
-    if (user.facultyRole === 'Innovation Head' && request.innovationHeadId?._id === user._id) {
-      return approvals.advisor.status === 'Approved' && approvals.innovationHead.status === 'Pending';
-    }
-    
-    if (user.facultyRole === 'HOD' && request.hodId?._id === user._id) {
-      return approvals.innovationHead.status === 'Approved' && approvals.hod.status === 'Pending';
-    }
-    
-    if (user.facultyRole === 'CFI') {
-      return approvals.hod.status === 'Approved' && approvals.cfi.status === 'Pending';
-    }
-    
-    return false;
-  };
+    return getApproval(r, key).status === 'Pending' && r.finalStatus !== 'Rejected';
+  }).length;
 
-  const filteredRequests = getFilteredRequests();
-  const pendingRequests = filteredRequests.filter(r => canApprove(r));
-  
-  const approvedRequests = filteredRequests.filter(r => {
-    if (r.selectedMentorId?._id === user._id) return r.approvals.mentor.status === 'Approved';
-    if (r.selectedAdvisorId?._id === user._id) return r.approvals.advisor.status === 'Approved';
-    if (user.facultyRole === 'Innovation Head' && r.innovationHeadId?._id === user._id) return r.approvals.innovationHead.status === 'Approved';
-    if (user.facultyRole === 'HOD' && r.hodId?._id === user._id) return r.approvals.hod.status === 'Approved';
-    if (user.facultyRole === 'CFI') return r.approvals.cfi.status === 'Approved';
-    return false;
-  });
-  
-  const rejectedRequests = filteredRequests.filter(r => {
-    if (r.selectedMentorId?._id === user._id) return r.approvals.mentor.status === 'Rejected';
-    if (r.selectedAdvisorId?._id === user._id) return r.approvals.advisor.status === 'Rejected';
-    if (user.facultyRole === 'Innovation Head' && r.innovationHeadId?._id === user._id) return r.approvals.innovationHead.status === 'Rejected';
-    if (user.facultyRole === 'HOD' && r.hodId?._id === user._id) return r.approvals.hod.status === 'Rejected';
-    if (user.facultyRole === 'CFI') return r.approvals.cfi.status === 'Rejected';
-    return false;
-  });
+  const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
 
-  const displayRequests = filter === 'pending' ? pendingRequests : filter === 'approved' ? approvedRequests : rejectedRequests;
+  // 5 most recent requests
+  const recentRequests = [...requests]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
 
-  const handleAction = (request, action) => {
-    setSelectedRequest({ ...request, action });
-    setShowModal(true);
-  };
-
-  const handleSubmit = async () => {
-    let roleKey = null;
-    
-    if (selectedRequest.selectedMentorId?._id === user._id) {
-      roleKey = 'mentor';
-    } else if (selectedRequest.selectedAdvisorId?._id === user._id) {
-      roleKey = 'advisor';
-    } else if (user.facultyRole === 'Innovation Head') {
-      roleKey = 'innovationHead';
-    } else if (user.facultyRole === 'HOD') {
-      roleKey = 'hod';
-    } else if (user.facultyRole === 'CFI') {
-      roleKey = 'cfi';
-    }
-
-    if (!roleKey) return;
-
-    try {
-      await updateODApproval(selectedRequest._id, {
-        role: roleKey,
-        status: selectedRequest.action,
-        remark
-      });
-
-      const updatedRequests = await getFacultyODRequests();
-      setAllRequests(updatedRequests);
-      setToast({ message: `Request ${selectedRequest.action.toLowerCase()} successfully!`, type: 'success' });
-      setShowModal(false);
-      setRemark('');
-    } catch (error) {
-      setToast({ message: error.response?.data?.message || 'Failed to update request', type: 'error' });
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const sidebarLinks = [
-    { path: '/faculty/dashboard', label: 'Dashboard' }
+  const stats = [
+    { label: 'Total Assigned',  value: total,        color: '#6366f1', bg: '#eef2ff', icon: '📁' },
+    { label: 'Action Needed',   value: actionNeeded, color: '#f59e0b', bg: '#fffbeb', icon: '⚡' },
+    { label: 'Approved',        value: approved,     color: '#10b981', bg: '#ecfdf5', icon: '✅' },
+    { label: 'Rejected',        value: rejected,     color: '#ef4444', bg: '#fef2f2', icon: '❌' },
   ];
+
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="dashboard-layout">
-      <Sidebar links={sidebarLinks} onLogout={handleLogout} />
-      <div className="dashboard-content">
-        <h1>Faculty Dashboard</h1>
-        <p><strong>Name:</strong> {user?.name}</p>
-        <p><strong>Department:</strong> {user?.department}</p>
-        {user?.isClassAdvisor && <p><strong>Class Advisor:</strong> Year {user?.advisorYear}</p>}
-        
-        <div className="filter-tabs">
-          <button className={filter === 'pending' ? 'active' : ''} onClick={() => setFilter('pending')}>
-            Pending ({pendingRequests.length})
-          </button>
-          <button className={filter === 'approved' ? 'active' : ''} onClick={() => setFilter('approved')}>
-            Approved ({approvedRequests.length})
-          </button>
-          <button className={filter === 'rejected' ? 'active' : ''} onClick={() => setFilter('rejected')}>
-            Rejected ({rejectedRequests.length})
-          </button>
-        </div>
+      <Sidebar />
+      <div className="main-content fac-dashboard">
 
-        {displayRequests.length === 0 ? (
-          <div className="no-data">No {filter} requests</div>
-        ) : (
-          <div className="requests-grid">
-            {displayRequests.map(request => (
-              <div key={request._id} className="request-card">
-                <h3>{request.eventName}</h3>
-                <p><strong>Student:</strong> {request.studentName}</p>
-                <p><strong>Department:</strong> {request.department}</p>
-                <p><strong>Year:</strong> {request.year}</p>
-                <p><strong>College:</strong> {request.collegeName}</p>
-                <p><strong>Dates:</strong> {request.fromDate} to {request.toDate}</p>
-                <p><strong>Selected Mentor:</strong> {request.selectedMentorId?.name || 'N/A'}</p>
-                <p><strong>Selected Advisor:</strong> {request.selectedAdvisorId?.name || 'N/A'}</p>
-                <p><strong>Description:</strong> {request.description}</p>
-                <div className="documents">
-                  <strong>Documents:</strong>
-                  <ul>
-                    {request.documents.registrationForm && <li>Registration Form</li>}
-                    {request.documents.paymentProof && <li>Payment Proof</li>}
-                    {request.documents.poster && <li>Event Poster</li>}
-                  </ul>
-                </div>
-                {filter === 'pending' && (
-                  <div className="action-buttons">
-                    <button className="btn-approve" onClick={() => handleAction(request, 'Approved')}>
-                      Approve
-                    </button>
-                    <button className="btn-reject" onClick={() => handleAction(request, 'Rejected')}>
-                      Reject
-                    </button>
-                  </div>
-                )}
+        {/* ── Hero Header ── */}
+        <div className="fac-hero">
+          <div className="fac-hero-left">
+            <span className="fac-role-icon">{ROLE_ICONS[user?.role] || '👤'}</span>
+            <div>
+              <p className="fac-greeting">Good day,</p>
+              <h1 className="fac-name">{user?.name}</h1>
+              <div className="fac-meta">
+                <span className="fac-badge">{user?.role}</span>
+                <span className="fac-dept">📍 {user?.department}</span>
               </div>
-            ))}
+            </div>
           </div>
-        )}
-      </div>
-
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={`${selectedRequest?.action} Request`}>
-        <div className="approval-form">
-          <p>Are you sure you want to {selectedRequest?.action.toLowerCase()} this request?</p>
-          <div className="form-group">
-            <label>Remark (Optional)</label>
-            <textarea value={remark} onChange={(e) => setRemark(e.target.value)} rows="3"></textarea>
+          <div className="fac-hero-right">
+            <p className="fac-date">{today}</p>
+            {actionNeeded > 0 && (
+              <button className="fac-action-btn" onClick={() => navigate('/faculty/od-requests')}>
+                ⚡ {actionNeeded} Request{actionNeeded > 1 ? 's' : ''} Need Action
+              </button>
+            )}
           </div>
-          <button className="btn-primary" onClick={handleSubmit}>Confirm</button>
         </div>
-      </Modal>
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        {/* ── Stat Cards ── */}
+        <div className="fac-stats-grid">
+          {loading
+            ? stats.map(s => <div key={s.label} className="fac-stat-card skeleton" />)
+            : stats.map(s => (
+              <div key={s.label} className="fac-stat-card" style={{ '--card-color': s.color, '--card-bg': s.bg }}>
+                <div className="fac-stat-icon">{s.icon}</div>
+                <div className="fac-stat-body">
+                  <span className="fac-stat-value">{s.value}</span>
+                  <span className="fac-stat-label">{s.label}</span>
+                </div>
+                <div className="fac-stat-bar">
+                  <div className="fac-stat-bar-fill" style={{ height: total ? `${(s.value / total) * 100}%` : '0%' }} />
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        {/* ── Bottom Row ── */}
+        <div className="fac-bottom-row">
+
+          {/* Approval Rate Card */}
+          <div className="fac-card fac-rate-card">
+            <h3 className="fac-card-title">Approval Rate</h3>
+            <div className="fac-ring-wrap">
+              <svg className="fac-ring" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" strokeWidth="12" />
+                <circle
+                  cx="60" cy="60" r="50" fill="none"
+                  stroke="#10b981" strokeWidth="12"
+                  strokeDasharray={`${2 * Math.PI * 50}`}
+                  strokeDashoffset={`${2 * Math.PI * 50 * (1 - approvalRate / 100)}`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 60 60)"
+                  style={{ transition: 'stroke-dashoffset 1s ease' }}
+                />
+              </svg>
+              <div className="fac-ring-label">
+                <span className="fac-ring-pct">{approvalRate}%</span>
+                <span className="fac-ring-sub">Approved</span>
+              </div>
+            </div>
+            <div className="fac-rate-legend">
+              {[
+                { label: 'Approved', value: approved, color: '#10b981' },
+                { label: 'Pending',  value: pending,  color: '#f59e0b' },
+                { label: 'Rejected', value: rejected, color: '#ef4444' },
+              ].map(l => (
+                <div key={l.label} className="fac-legend-row">
+                  <span className="fac-legend-dot" style={{ background: l.color }} />
+                  <span className="fac-legend-label">{l.label}</span>
+                  <span className="fac-legend-val">{l.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Requests */}
+          <div className="fac-card fac-recent-card">
+            <div className="fac-card-header-row">
+              <h3 className="fac-card-title">Recent Requests</h3>
+              <button className="fac-view-all" onClick={() => navigate('/faculty/od-requests')}>View All →</button>
+            </div>
+            {loading ? (
+              <p className="fac-loading">Loading...</p>
+            ) : recentRequests.length === 0 ? (
+              <p className="fac-empty">No requests assigned yet.</p>
+            ) : (
+              <div className="fac-recent-list">
+                {recentRequests.map(req => {
+                  const myStatus = getApproval(req, key).status;
+                  return (
+                    <div key={req.id} className="fac-recent-item">
+                      <div className="fac-recent-avatar">
+                        {req.student?.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="fac-recent-info">
+                        <span className="fac-recent-name">{req.student?.name}</span>
+                        <span className="fac-recent-event">{req.eventName}</span>
+                      </div>
+                      <span className={`fac-recent-badge ${myStatus.toLowerCase()}`}>{myStatus}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Quick Actions */}
+          <div className="fac-card fac-quick-card">
+            <h3 className="fac-card-title">Quick Actions</h3>
+            <div className="fac-quick-list">
+              <button className="fac-quick-btn" onClick={() => navigate('/faculty/od-requests')}>
+                <span className="fac-quick-icon">📋</span>
+                <div>
+                  <p className="fac-quick-label">OD Requests</p>
+                  <p className="fac-quick-sub">Review & approve requests</p>
+                </div>
+              </button>
+              <button className="fac-quick-btn" onClick={() => navigate('/faculty/profile')}>
+                <span className="fac-quick-icon">👤</span>
+                <div>
+                  <p className="fac-quick-label">My Profile</p>
+                  <p className="fac-quick-sub">View & edit your profile</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
-};
+}
 
 export default FacultyDashboard;

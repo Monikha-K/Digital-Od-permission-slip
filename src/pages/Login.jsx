@@ -1,69 +1,84 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { login as loginAPI } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Login.css';
 
-const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+function Login() {
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const { login } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    setLoading(true);
     try {
-      const userData = await loginAPI({ username, password });
-      login(userData);
-      
-      if (userData.role === 'student') {
-        navigate('/student/dashboard');
-      } else if (userData.role === 'faculty') {
-        navigate('/faculty/dashboard');
-      } else if (userData.role === 'admin') {
-        navigate('/admin/dashboard');
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'Invalid username or password');
+      const user = await login(formData);
+      if (user.role === 'Student') navigate('/student/dashboard');
+      else if (user.role === 'Admin') navigate('/admin/dashboard');
+      else navigate('/faculty/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-container">
-      <div className="login-box">
-        <h1>Digital OD Permission System</h1>
-        <h2>Login</h2>
-        <form onSubmit={handleSubmit}>
+      <div className="login-card">
+        <div className="login-card-header">
+          <p className="college-name">Sri Eshwar College of Engineering</p>
+          <h1>Digital OD Permission System</h1>
+          <p className="subtitle">Sign in to your account</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label>Username</label>
+            <label htmlFor="email">Email Address</label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              id="email"
+              placeholder="Enter your college email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
           </div>
+
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
           </div>
+
           {error && <div className="error-message">{error}</div>}
-          <button type="submit" className="login-btn">Login</button>
+
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
         </form>
+
+        <div className="demo-credentials">
+          <h3>Demo Accounts</h3>
+          <p>Admin: admin@college.edu / admin123</p>
+          <p>HOD: cse_hod@college.edu / hod123</p>
+        </div>
+
         <p className="register-link">
-          Don't have an account? <Link to="/register">Register here</Link>
+          Don't have an account? <Link to="/register">Create Account</Link>
         </p>
       </div>
     </div>
   );
-};
+}
 
 export default Login;

@@ -1,0 +1,107 @@
+.ps-page { padding: 32px 36px; }
+
+.ps-header { margin-bottom: 24px; }
+.ps-title  { font-size: 26px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.ps-sub    { font-size: 14px; color: var(--secondary); }
+
+.ps-feedback {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-radius: 10px; margin-bottom: 18px;
+  background: #fffbeb; border: 1px solid #fcd34d; color: #92400e;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+
+.ps-loading { color: var(--secondary); padding: 40px; text-align: center; }
+.ps-empty   { text-align: center; padding: 60px; background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.ps-empty span { font-size: 48px; display: block; margin-bottom: 12px; }
+.ps-empty p    { color: var(--secondary); font-size: 15px; }
+
+.ps-list { display: flex; flex-direction: column; gap: 16px; }
+
+.ps-card {
+  background: white; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-left: 5px solid #d1d5db; overflow: hidden;
+}
+.ps-card.ps-submitted    { border-left-color: #6366f1; }
+.ps-card.ps-timeleft     { border-left-color: #f59e0b; }
+.ps-card.ps-notsubmitted { border-left-color: #ef4444; }
+.ps-card.ps-overdue      { border-left-color: #dc2626; }
+
+.ps-card-top {
+  display: flex; align-items: center; gap: 20px;
+  padding: 20px 24px; flex-wrap: wrap;
+}
+
+.ps-student-info { display: flex; align-items: center; gap: 12px; min-width: 180px; }
+.ps-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white; font-size: 16px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ps-student-name { font-size: 15px; font-weight: 700; color: var(--dark); }
+.ps-student-meta { font-size: 12px; color: var(--secondary); margin-top: 2px; }
+
+.ps-event-info { flex: 1; min-width: 160px; }
+.ps-event-name  { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.ps-event-dates { font-size: 12px; color: var(--secondary); }
+
+.ps-status-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+
+.ps-status-badge {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.ps-status-badge.ps-submitted    { background: #eef2ff; color: #4f46e5; }
+.ps-status-badge.ps-timeleft     { background: #fffbeb; color: #d97706; }
+.ps-status-badge.ps-notsubmitted { background: #fef2f2; color: #dc2626; }
+.ps-status-badge.ps-overdue      { background: #fef2f2; color: #991b1b; }
+
+.ps-warn-count { font-size: 12px; font-weight: 600; color: #f59e0b; }
+
+/* Docs */
+.ps-docs { padding: 0 24px 20px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+.ps-docs-title { font-size: 13px; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.ps-docs-row   { display: flex; gap: 10px; flex-wrap: wrap; }
+.ps-doc-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; background: #f8fafc; border: 2px solid var(--border);
+  border-radius: 8px; color: #4f46e5; font-size: 13px; font-weight: 600;
+  text-decoration: none; transition: all 0.2s;
+}
+.ps-doc-link:hover { background: #eef2ff; border-color: #6366f1; }
+
+/* Actions */
+.ps-actions { padding: 0 24px 20px; border-top: 1px solid #f1f5f9; padding-top: 16px; }
+.ps-warn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ps-warn-input {
+  flex: 1; min-width: 200px; padding: 10px 14px;
+  border: 2px solid var(--border); border-radius: 8px;
+  font-size: 13px; outline: none; transition: border-color 0.2s;
+}
+.ps-warn-input:focus { border-color: #f59e0b; }
+
+.ps-warn-btn, .ps-report-btn {
+  padding: 10px 18px; border-radius: 8px; font-size: 13px;
+  font-weight: 700; cursor: pointer; border: none; transition: all 0.2s;
+  min-height: unset; white-space: nowrap;
+}
+.ps-warn-btn {
+  background: #fffbeb; color: #d97706; border: 2px solid #fcd34d;
+}
+.ps-warn-btn:hover:not(:disabled) { background: #fef3c7; }
+.ps-warn-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.ps-report-btn {
+  background: #fef2f2; color: #dc2626; border: 2px solid #fecaca;
+}
+.ps-report-btn:hover:not(:disabled) { background: #fee2e2; }
+.ps-report-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.ps-report-hint { font-size: 12px; color: var(--secondary); margin-top: 8px; font-style: italic; }
+
+@media (max-width: 768px) {
+  .ps-page { padding: 20px 16px; }
+  .ps-card-top { flex-direction: column; align-items: flex-start; }
+  .ps-status-col { align-items: flex-start; }
+}

@@ -1,144 +1,627 @@
+/* ═══════════════════════════════════════════════
+   FACULTY DASHBOARD — PROFESSIONAL LAYOUT
+═══════════════════════════════════════════════ */
+
+.fac-dashboard { padding: 32px 36px; }
+
+/* ── Hero ─────────────────────────────────────── */
+.fac-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%);
+  border-radius: 20px;
+  padding: 32px 36px;
+  margin-bottom: 28px;
+  color: white;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.fac-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.fac-role-icon {
+  font-size: 52px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.fac-greeting {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.fac-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.fac-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fac-badge {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.fac-dept {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+
+.fac-hero-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.fac-date {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 500;
+}
+
+.fac-action-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(245,158,11,0.4);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.fac-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245,158,11,0.5);
+}
+
+/* ── Stat Cards ───────────────────────────────── */
+.fac-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.fac-stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid var(--card-color, #6366f1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fac-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.fac-stat-card.skeleton {
+  background: #f1f5f9;
+  animation: pulse 1.5s infinite;
+  height: 90px;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.fac-stat-icon {
+  font-size: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--card-bg, #eef2ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fac-stat-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.fac-stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--card-color, #6366f1);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.fac-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fac-stat-bar {
+  width: 4px;
+  height: 48px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+  align-self: center;
+}
+.fac-stat-bar-fill {
+  width: 100%;
+  background: var(--card-color, #6366f1);
+  border-radius: 99px;
+  transition: height 0.8s ease;
+  position: relative;
+  bottom: 0;
+  margin-top: auto;
+}
+
+/* ── Bottom Row ───────────────────────────────── */
+.fac-bottom-row {
+  display: grid;
+  grid-template-columns: 260px 1fr 240px;
+  gap: 20px;
+  align-items: start;
+}
+
+.fac-card {
+  background: white;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.fac-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+}
+
+.fac-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.fac-card-header-row .fac-card-title { margin-bottom: 0; }
+
+.fac-view-all {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6366f1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  min-height: unset;
+  box-shadow: none;
+  transition: color 0.2s;
+}
+.fac-view-all:hover { color: #4f46e5; transform: none; box-shadow: none; }
+
+/* ── Approval Rate Ring ───────────────────────── */
+.fac-rate-card { text-align: center; }
+
+.fac-ring-wrap {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin: 0 auto 20px;
+}
+
+.fac-ring { width: 100%; height: 100%; }
+
+.fac-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.fac-ring-pct {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--dark);
+  line-height: 1;
+}
+
+.fac-ring-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.fac-rate-legend { display: flex; flex-direction: column; gap: 10px; }
+
+.fac-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fac-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fac-legend-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-align: left;
+}
+
+.fac-legend-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* ── Recent Requests ──────────────────────────── */
+.fac-loading, .fac-empty {
+  color: var(--secondary);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.fac-recent-list { display: flex; flex-direction: column; gap: 12px; }
+
+.fac-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.fac-recent-item:hover { background: #f1f5f9; }
+
+.fac-recent-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fac-recent-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.fac-recent-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fac-recent-event {
+  font-size: 12px;
+  color: var(--secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fac-recent-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+.fac-recent-badge.approved { background: #ecfdf5; color: #059669; }
+.fac-recent-badge.pending  { background: #fffbeb; color: #d97706; }
+.fac-recent-badge.rejected { background: #fef2f2; color: #dc2626; }
+
+/* ── Quick Actions ────────────────────────────── */
+.fac-quick-list { display: flex; flex-direction: column; gap: 12px; }
+
+.fac-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  min-height: unset;
+}
+.fac-quick-btn:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+  transform: translateX(4px);
+  box-shadow: none;
+}
+
+.fac-quick-icon {
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.fac-quick-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 2px;
+}
+
+.fac-quick-sub {
+  font-size: 12px;
+  color: var(--secondary);
+  font-weight: 400;
+}
+
+/* ═══════════════════════════════════════════════
+   OD REQUESTS PAGE — FILTERS / TABLE / MODAL
+═══════════════════════════════════════════════ */
+
+.requests-section { margin-top: 32px; }
+
 .filter-tabs {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 12px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
 .filter-tabs button {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #e2e8f0;
-  background: var(--card);
-  border-radius: 5px;
-  cursor: pointer;
+  padding: 12px 24px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 8px;
   font-weight: 600;
-  transition: all 0.3s;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .filter-tabs button.active {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-color: var(--primary);
+  border-color: #667eea;
 }
 
-.requests-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+.view-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.request-card {
-  background: var(--card);
-  padding: 1.5rem;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(109, 40, 217, 0.1);
-}
-
-.request-card h3 {
-  color: var(--primary);
-  margin-bottom: 1rem;
-}
-
-.request-card p {
-  margin-bottom: 0.5rem;
-  color: var(--muted);
-  word-wrap: break-word;
-}
-
-.documents {
-  margin: 1rem 0;
-}
-
-.documents ul {
-  margin-left: 1.5rem;
-  color: var(--muted);
-}
-
-.action-buttons {
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.btn-approve {
-  flex: 1;
-  padding: 0.75rem;
-  background-color: var(--success);
+.modal-content {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.documents-section,
+.proof-section,
+.approval-status {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--light);
+  border-radius: 12px;
+}
+
+.documents-section h3,
+.proof-section h3,
+.approval-status h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--dark);
+}
+
+.documents-section a,
+.proof-section a {
+  display: block;
+  padding: 12px 16px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--primary);
+  text-decoration: none;
+  margin-bottom: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.documents-section a:hover,
+.proof-section a:hover {
+  background: var(--primary);
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  transform: translateX(5px);
+}
+
+.approval-status p {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.approval-status span {
+  float: right;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.approval-status span.pending  { color: #f59e0b; }
+.approval-status span.approved { color: #10b981; }
+.approval-status span.rejected { color: #ef4444; }
+
+.modal-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 24px;
+}
+
+.request-details p {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.approve-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 14px;
+  border-radius: 10px;
   font-weight: 600;
 }
 
-.btn-approve:hover {
-  background-color: #047857;
-}
-
-.btn-reject {
+.reject-btn {
   flex: 1;
-  padding: 0.75rem;
-  background-color: var(--error);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  padding: 14px;
+  border-radius: 10px;
   font-weight: 600;
 }
 
-.btn-reject:hover {
-  background-color: #b91c1c;
+.cancel-btn {
+  flex: 1;
+  background: var(--secondary);
+  color: white;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 600;
 }
 
-.approval-form {
-  padding: 1rem 0;
+/* ── ClassAdvisor role tabs ───────────────────── */
+.role-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-.approval-form p {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+.role-tab-btn {
+  padding: 10px 22px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.role-tab-btn.active {
+  background: #1e1b4b;
+  color: white;
+  border-color: #1e1b4b;
+}
+
+.no-data-text {
+  color: var(--secondary);
+  margin-top: 20px;
+  font-size: 15px;
+}
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 1100px) {
+  .fac-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .fac-bottom-row { grid-template-columns: 1fr 1fr; }
+  .fac-quick-card { grid-column: span 2; }
 }
 
 @media (max-width: 768px) {
-  .requests-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-tabs button {
-    padding: 0.625rem 1.25rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .filter-tabs {
-    gap: 0.5rem;
-  }
-  
-  .filter-tabs button {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-  
-  .request-card {
-    padding: 1.25rem;
-  }
-  
-  .request-card h3 {
-    font-size: 1.1rem;
-  }
-  
-  .request-card p {
-    font-size: 0.9rem;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-  }
-  
-  .btn-approve,
-  .btn-reject {
-    width: 100%;
-  }
+  .fac-dashboard { padding: 20px 16px; }
+  .fac-hero { flex-direction: column; align-items: flex-start; }
+  .fac-hero-right { align-items: flex-start; }
+  .fac-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .fac-bottom-row { grid-template-columns: 1fr; }
+  .fac-quick-card { grid-column: span 1; }
+  .modal-content { padding: 24px; }
+  .modal-actions { flex-direction: column; }
 }
