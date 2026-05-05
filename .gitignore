@@ -31,5 +31,3 @@ backend/uploads/
 *.sln
 *.sw?
 
-# Springboot
-springboot-backend/
